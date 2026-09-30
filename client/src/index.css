@@ -1,0 +1,172 @@
+/* ==========================================================================
+   DAIKENJA (GRANDE SABIO) - DESIGN SYSTEM
+   Futuristic Magical System Interface: Minimalist, Cold, Precise
+   ========================================================================== */
+
+:root {
+  /* Background Palette */
+  --bg-space: #05060f;
+  --bg-overlay: rgba(5, 6, 15, 0.75);
+  --bg-surface: rgba(13, 16, 35, 0.65);
+  --bg-surface-elevated: rgba(18, 22, 48, 0.85);
+
+  /* Primary Accent Palette */
+  --accent-violet: #8b5cf6;
+  --accent-blue: #3b82f6;
+  --accent-cyan: #22d3ee;
+  --accent-gold: #f5c26b;
+  --accent-error: #ef4444;
+
+  /* Subtle Glows */
+  --glow-violet: rgba(139, 92, 246, 0.35);
+  --glow-blue: rgba(59, 130, 246, 0.35);
+  --glow-cyan: rgba(34, 211, 238, 0.35);
+  --glow-gold: rgba(245, 194, 107, 0.35);
+
+  /* Typography Colors */
+  --text-main: #e6e9f5;
+  --text-secondary: #7c86a2;
+  --text-muted: #4b556e;
+  --text-bright: #ffffff;
+
+  /* Borders & Lines */
+  --border-line: rgba(139, 92, 246, 0.22);
+  --border-active: rgba(34, 211, 238, 0.5);
+  --border-dim: rgba(255, 255, 255, 0.08);
+
+  /* Fonts */
+  --font-display: 'Orbitron', -apple-system, sans-serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Cut Corners Polygons */
+  --clip-cut-corner-sm: polygon(
+    0 8px,
+    8px 0,
+    calc(100% - 8px) 0,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    0 calc(100% - 8px)
+  );
+  --clip-cut-corner-md: polygon(
+    0 14px,
+    14px 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    14px 100%,
+    0 calc(100% - 14px)
+  );
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg-space);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Background Atmosphere with left teal glow */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 42% 50%,
+    rgba(13, 148, 136, 0.13) 0%,
+    rgba(56, 189, 248, 0.09) 24%,
+    rgba(37, 99, 235, 0.06) 48%,
+    rgba(5, 6, 15, 0.98) 78%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Subtle Film Grain */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-size: 24px 24px;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Base Typographic Utility Classes */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.tracking-wide {
+  letter-spacing: 0.25em;
+}
+
+/* Glass & HUD Panels */
+.hud-panel {
+  background: var(--bg-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-line);
+  clip-path: var(--clip-cut-corner-sm);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(139, 92, 246, 0.05);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hud-panel:hover {
+  border-color: var(--border-active);
+  box-shadow: 0 8px 36px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(34, 211, 238, 0.08);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(5, 6, 15, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-line);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan);
+}
+
+/* Leva Panel Bottom-Left Repositioning */
+#leva__root {
+  position: fixed !important;
+  bottom: 24px !important;
+  left: 24px !important;
+  top: auto !important;
+  right: auto !important;
+  z-index: 99999 !important;
+}

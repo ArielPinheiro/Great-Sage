@@ -1,0 +1,121 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, #12122a 0%, #0a0a1a 70%);
+}
+
+.hud-container {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Orb placeholder */
+.orb-placeholder {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
+  border: 2px solid var(--border-neon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.orb-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  animation: spin 12s linear infinite;
+}
+
+.orb-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  color: var(--neon-purple);
+  text-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+}
+
+.title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  background: linear-gradient(135deg, var(--neon-purple), var(--neon-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  color: var(--text-muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* Status card */
+.status-card {
+  margin-top: 1rem;
+  padding: 1.25rem 2rem;
+  background: rgba(18, 18, 42, 0.8);
+  border: 1px solid var(--border-neon);
+  border-radius: 8px;
+  backdrop-filter: blur(12px);
+  min-width: 320px;
+  text-align: left;
+}
+
+.status-card p {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.05em;
+}
+
+.status-ok span {
+  color: var(--neon-cyan);
+  font-weight: 700;
+}
+
+.status-agent {
+  color: var(--neon-purple);
+}
+
+.status-time {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.status-error {
+  color: #ef4444;
+}
+
+.status-loading {
+  color: var(--text-muted);
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.1); }
+  50% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.25); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
