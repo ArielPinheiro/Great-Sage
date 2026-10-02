@@ -5,6 +5,9 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: true,
+    port: 80,
+    allowedHosts: ['greatsage', 'localhost'],
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

@@ -1,12 +1,15 @@
 import React from 'react';
-import { Activity, ShieldAlert, Radio, Sparkles } from 'lucide-react';
+import { Activity, ShieldAlert, Radio, Sparkles, MessageSquare } from 'lucide-react';
 import type { SageStatus } from '../orb/types';
+import { useSageStore } from '../../store/useSageStore';
 
 interface HudHeaderProps {
   status: SageStatus;
 }
 
 export const HudHeader: React.FC<HudHeaderProps> = ({ status }) => {
+  const { serverMode, isChatOpen, setChatOpen } = useSageStore();
+
   const getStatusIcon = () => {
     switch (status) {
       case 'thinking':
@@ -84,6 +87,24 @@ export const HudHeader: React.FC<HudHeaderProps> = ({ status }) => {
           >
             VER 2.4.0
           </span>
+
+          {/* Discrete Simulated Mode Tag */}
+          {serverMode === 'mock' && (
+            <span
+              className="font-mono"
+              style={{
+                fontSize: '0.68rem',
+                color: '#f59e0b',
+                border: '1px solid rgba(245, 158, 11, 0.5)',
+                background: 'rgba(245, 158, 11, 0.12)',
+                padding: '2px 8px',
+                letterSpacing: '0.15em',
+                clipPath: 'var(--clip-cut-corner-sm)',
+              }}
+            >
+              [ MODO SIMULADO ]
+            </span>
+          )}
         </div>
         <span
           className="font-mono"
@@ -97,28 +118,51 @@ export const HudHeader: React.FC<HudHeaderProps> = ({ status }) => {
         </span>
       </div>
 
-      {/* Right Realtime Telemetry Status */}
-      <div
-        className="hud-panel"
-        style={{
-          padding: '8px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-        }}
-      >
-        <span style={{ display: 'flex', alignItems: 'center' }}>{getStatusIcon()}</span>
-        <span
-          className="font-mono"
+      {/* Right Controls and Realtime Telemetry Status */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', pointerEvents: 'auto' }}>
+        {/* Discrete Toggle Button for Communication Window */}
+        <button
+          onClick={() => setChatOpen(!isChatOpen)}
+          className="font-mono hud-panel"
           style={{
+            padding: '8px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer',
             fontSize: '0.7rem',
             letterSpacing: '0.15em',
-            color: 'var(--text-main)',
-            textTransform: 'uppercase',
+            color: isChatOpen ? 'var(--accent-cyan)' : 'var(--text-main)',
+            border: isChatOpen ? '1px solid var(--accent-cyan)' : '1px solid var(--border-line)',
+            background: isChatOpen ? 'rgba(34, 211, 238, 0.15)' : 'var(--bg-surface)',
           }}
         >
-          {getStatusLabel()}
-        </span>
+          <MessageSquare size={13} color={isChatOpen ? 'var(--accent-cyan)' : 'var(--text-secondary)'} />
+          {isChatOpen ? 'FECHAR CHAT' : 'PERGUNTAR'}
+        </button>
+
+        <div
+          className="hud-panel"
+          style={{
+            padding: '8px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+        >
+          <span style={{ display: 'flex', alignItems: 'center' }}>{getStatusIcon()}</span>
+          <span
+            className="font-mono"
+            style={{
+              fontSize: '0.7rem',
+              letterSpacing: '0.15em',
+              color: 'var(--text-main)',
+              textTransform: 'uppercase',
+            }}
+          >
+            {getStatusLabel()}
+          </span>
+        </div>
       </div>
     </header>
   );

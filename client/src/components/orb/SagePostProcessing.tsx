@@ -18,13 +18,13 @@ interface SagePostProcessingProps {
 }
 
 export const SagePostProcessing: React.FC<SagePostProcessingProps> = ({
-  bloomIntensity = 1.2,
-  bloomThreshold = 0.4,
+  bloomIntensity = 1.15,
+  bloomThreshold = 0.90,
   showBloom = true,
   showDepthOfField = false,
   isMobile = false,
 }) => {
-  const chromaticOffset = useMemo(() => new THREE.Vector2(0.0006, 0.0005), []);
+  const chromaticOffset = useMemo(() => new THREE.Vector2(0.0002, 0.00018), []);
 
   return (
     <EffectComposer multisampling={isMobile ? 0 : 4}>
@@ -56,8 +56,8 @@ export const SagePostProcessing: React.FC<SagePostProcessingProps> = ({
         />
       )}
 
-      {/* Cinematic Vignette */}
-      <Vignette eskil={false} offset={0.18} darkness={0.8} />
+      {/* Subtle Cinematic Vignette without center wash */}
+      <Vignette eskil={false} offset={0.35} darkness={0.4} />
     </EffectComposer>
   );
 };

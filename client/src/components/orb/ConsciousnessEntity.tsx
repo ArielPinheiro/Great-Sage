@@ -114,14 +114,22 @@ export const ConsciousnessEntity: React.FC<ConsciousnessEntityProps> = ({
           />
         )}
 
-        {/* Ambient Ethereal Sparkle Dust */}
+        {/* Ambient Ethereal Sparkle Dust in Two Depths (Parallax) */}
         <Sparkles
-          count={isMobile ? 25 : 60}
-          scale={5.0}
-          size={isMobile ? 1.2 : 1.8}
-          speed={0.3}
-          color="#93c5fd"
-          opacity={0.45 * introProgress}
+          count={isMobile ? 24 : 48}
+          scale={5.5}
+          size={isMobile ? 1.2 : 1.6}
+          speed={0.25}
+          color="#38bdf8"
+          opacity={0.42 * introProgress}
+        />
+        <Sparkles
+          count={isMobile ? 32 : 68}
+          scale={13.0}
+          size={isMobile ? 1.6 : 2.2}
+          speed={0.12}
+          color="#818cf8"
+          opacity={0.30 * introProgress}
         />
       </Float>
     </group>

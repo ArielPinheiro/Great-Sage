@@ -47,12 +47,12 @@ function createDataChipTexture(size = 256): THREE.CanvasTexture {
   ctx.lineWidth = 4;
   ctx.strokeRect(4, 4, w - 8, h - 8);
 
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(125, 211, 252, 0.7)';
+  ctx.lineWidth = 1.5;
   ctx.strokeRect(5, 5, w - 10, h - 10);
 
   // Interior data telemetry lines
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.fillStyle = 'rgba(125, 211, 252, 0.5)';
   ctx.fillRect(10, 10, (w - 20) * 0.65, 2);
   ctx.fillRect(10, 16, (w - 20) * 0.4, 1.5);
 
@@ -67,7 +67,7 @@ export const DataFragments: React.FC<DataFragmentsProps> = ({
   isMobile = false,
 }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
-  const count = isMobile ? 12 : 22;
+  const count = isMobile ? 6 : 10;
   const { pointer } = useThree();
 
   const chipTexture = useMemo(() => createDataChipTexture(256), []);
@@ -75,21 +75,18 @@ export const DataFragments: React.FC<DataFragmentsProps> = ({
   const fragments = useMemo<FragmentData[]>(() => {
     const list: FragmentData[] = [];
     for (let i = 0; i < count; i++) {
-      // Keep clear exclusion radius: r between 1.6 and 2.6 (nothing covers core)
-      const radius = 1.65 + (i % 5) * 0.2 + Math.random() * 0.2;
+      // Clear exclusion radius: orbit outside the 4.10 outer polygon layer (r between 4.45 and 5.15)
+      const radius = 4.45 + (i % 4) * 0.22 + Math.random() * 0.15;
       const angle = (i / count) * Math.PI * 2 + 0.2;
 
-      // Bound Y between -1.4 and 1.1 so it never touches the top header title
-      const y = -1.2 + (i / count) * 2.2 + (Math.random() - 0.5) * 0.2;
+      // Bound Y gracefully
+      const y = -1.6 + (i / count) * 3.2 + (Math.random() - 0.5) * 0.3;
 
-      // Z depth: keep slightly behind or beside the camera, not in-face
-      const zDepth = -0.8 + Math.random() * 1.6;
+      const zDepth = -0.5 + Math.random() * 1.0;
+      const parallaxFactor = 0.4 + (zDepth + 0.8) * 0.5;
 
-      // Parallax factor: near chips move significantly more
-      const parallaxFactor = 0.5 + (zDepth + 1.0) * 0.7;
-
-      const scaleW = 0.24 + Math.random() * 0.08;
-      const scaleH = scaleW * 0.5;
+      const scaleW = 0.16 + Math.random() * 0.04;
+      const scaleH = scaleW * 0.45;
 
       const pos = new THREE.Vector3(
         Math.cos(angle) * radius,
@@ -154,7 +151,7 @@ export const DataFragments: React.FC<DataFragmentsProps> = ({
       const mat = meshRef.current.material as THREE.MeshBasicMaterial;
       if (mat) {
         mat.color.copy(currentColor.current);
-        mat.opacity = 0.55 * introProgress;
+        mat.opacity = 0.45 * introProgress;
       }
     }
   });
@@ -171,7 +168,7 @@ export const DataFragments: React.FC<DataFragmentsProps> = ({
         map={chipTexture}
         color={currentColor.current}
         transparent
-        opacity={0.55}
+        opacity={0.45}
         side={THREE.DoubleSide}
         blending={THREE.AdditiveBlending}
         depthWrite={false}

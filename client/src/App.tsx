@@ -1,16 +1,22 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { Leva } from 'leva';
 import { SageScene } from './components/orb/SageScene';
 import { HudHeader } from './components/hud/HudHeader';
 import { HudFrame } from './components/hud/HudFrame';
-import type { SageStatus } from './components/orb/types';
+import { ChatWindow } from './components/chat/ChatWindow';
+import { RadialMenu } from './components/menu/RadialMenu';
+import { useSageStore } from './store/useSageStore';
 
 export function App() {
-  const [status] = useState<SageStatus>('idle');
+  const { status, setRadialMenuOpen, isRadialMenuOpen, checkServerHealth } =
+    useSageStore();
+
+  useEffect(() => {
+    checkServerHealth();
+  }, [checkServerHealth]);
 
   const handleCoreClick = () => {
-    // This will open the radial menu in Parte 2
-    console.log('[Daikenja] Nucleo acionado pelo usuario.');
+    setRadialMenuOpen(!isRadialMenuOpen);
   };
 
   return (
@@ -23,7 +29,7 @@ export function App() {
         backgroundColor: '#05060f',
       }}
     >
-      {/* Leva Live Debug & Tuning Panel (Minimized by default in bottom-left) */}
+      {/* Leva Live Debug & Tuning Panel (Minimized in bottom-left) */}
       <Leva
         collapsed={true}
         oneLineLabels={false}
@@ -60,8 +66,14 @@ export function App() {
           zIndex: 2,
         }}
       >
-        <SageScene externalStatus={undefined} onCoreClick={handleCoreClick} />
+        <SageScene externalStatus={status} onCoreClick={handleCoreClick} />
       </main>
+
+      {/* Radial Menu triggered by Core click or M key */}
+      <RadialMenu />
+
+      {/* Frosted Glass Chat Window */}
+      <ChatWindow />
     </div>
   );
 }

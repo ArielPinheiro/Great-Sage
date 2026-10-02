@@ -49,11 +49,11 @@ export function createSoftCoreTexture(size = 256): THREE.CanvasTexture {
   const cy = size / 2;
   const r = size / 2;
 
-  const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 0.85);
   gradient.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');
-  gradient.addColorStop(0.2, 'rgba(255, 250, 240, 0.9)');
-  gradient.addColorStop(0.45, 'rgba(186, 230, 253, 0.5)');
-  gradient.addColorStop(0.75, 'rgba(56, 189, 248, 0.15)');
+  gradient.addColorStop(0.18, 'rgba(255, 250, 240, 0.92)');
+  gradient.addColorStop(0.38, 'rgba(186, 230, 253, 0.45)');
+  gradient.addColorStop(0.65, 'rgba(56, 189, 248, 0.12)');
   gradient.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
 
   ctx.fillStyle = gradient;

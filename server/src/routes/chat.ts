@@ -1,19 +1,168 @@
+/**
+ * POST /api/chat — Streaming chat endpoint for Daikenja.
+ *
+ * Accepts message history (roles: "user" | "assistant") and optional mode ("chat" | "analysis").
+ * Streams SSE chunks from LLM (or mock service fallback).
+ */
+
 import { Router, Request, Response } from 'express';
+import {
+  createChatStream,
+  type ChatMessage,
+  type ChatMode,
+} from '../services/llmService.js';
 
 export const chatRouter = Router();
 
-// Placeholder — will be fully implemented in Etapa 4
-chatRouter.post('/chat', async (req: Request, res: Response) => {
-  const { message } = req.body;
+interface ValidationSuccess {
+  valid: true;
+  messages: ChatMessage[];
+  mode: ChatMode;
+}
 
-  if (!message || typeof message !== 'string') {
-    res.status(400).json({ error: 'Campo "message" é obrigatório.' });
+interface ValidationFailure {
+  valid: false;
+  reason: string;
+}
+
+function validateChatRequest(body: unknown): ValidationSuccess | ValidationFailure {
+  if (!body || typeof body !== 'object') {
+    return { valid: false, reason: 'Corpo da requisição inválido.' };
+  }
+
+  const { messages, mode } = body as Record<string, unknown>;
+
+  // Validate mode
+  let selectedMode: ChatMode = 'chat';
+  if (mode !== undefined) {
+    if (mode !== 'chat' && mode !== 'analysis') {
+      return {
+        valid: false,
+        reason: 'Campo "mode" inválido. Valores aceitos: "chat", "analysis".',
+      };
+    }
+    selectedMode = mode;
+  }
+
+  // Validate messages array
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return {
+      valid: false,
+      reason: 'Campo "messages" deve ser um array não-vazio.',
+    };
+  }
+
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    if (
+      !msg ||
+      typeof msg !== 'object' ||
+      typeof (msg as Record<string, unknown>).role !== 'string' ||
+      typeof (msg as Record<string, unknown>).content !== 'string'
+    ) {
+      return {
+        valid: false,
+        reason: `Mensagem no índice ${i} deve ter "role" (string) e "content" (string).`,
+      };
+    }
+
+    const role = (msg as Record<string, unknown>).role as string;
+    if (role === 'system') {
+      return {
+        valid: false,
+        reason: 'Mensagens com role "system" não são permitidas.',
+      };
+    }
+
+    if (role !== 'user' && role !== 'assistant') {
+      return {
+        valid: false,
+        reason: `Role inválida no índice ${i}: "${role}". Valores aceitos: "user", "assistant".`,
+      };
+    }
+  }
+
+  return {
+    valid: true,
+    messages: messages as ChatMessage[],
+    mode: selectedMode,
+  };
+}
+
+chatRouter.post('/chat', async (req: Request, res: Response) => {
+  const validation = validateChatRequest(req.body);
+
+  if (!validation.valid) {
+    res.status(400).json({
+      error: 'INVALID_REQUEST',
+      message: validation.reason,
+    });
     return;
   }
 
-  // For Etapa 1: echo response to verify connectivity
-  res.json({
-    role: 'assistant',
-    content: `《Grande Sábio》Análise: mensagem recebida — "${message}". Integração com LLM será ativada na Etapa 4.`,
+  const { messages, mode } = validation;
+
+  const abortController = new AbortController();
+
+  // Cancel upstream call when client disconnects
+  res.on('close', () => {
+    if (!res.writableEnded) {
+      abortController.abort();
+    }
   });
+
+  try {
+    const generator = createChatStream(messages, mode, abortController.signal);
+
+    // Fetch first chunk to verify stream readiness before sending headers
+    const firstResult = await generator.next();
+
+    if (res.closed) {
+      return;
+    }
+
+    // Set up SSE headers
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    });
+    res.flushHeaders();
+
+    if (!firstResult.done && firstResult.value) {
+      res.write(firstResult.value);
+    }
+
+    for await (const chunk of generator) {
+      if (res.closed || res.writableEnded) break;
+      res.write(chunk);
+    }
+
+    if (!res.closed) {
+      res.end();
+    }
+  } catch (err: unknown) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      if (!res.closed) res.end();
+      return;
+    }
+
+    console.error('[Chat] Erro inesperado no handler:', err);
+
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: 'INTERNAL_ERROR',
+        message: 'Erro interno ao processar a resposta.',
+      });
+    } else {
+      res.write(
+        `data: ${JSON.stringify({
+          error: 'STREAM_ERROR',
+          message: 'Erro durante o streaming da resposta.',
+        })}\n\n`,
+      );
+      res.end();
+    }
+  }
 });
