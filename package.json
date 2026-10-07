@@ -2,13 +2,94 @@
   "name": "great-sage",
   "version": "1.0.0",
   "private": true,
-  "description": "Daikenja - Grande Sabio AI Assistant",
+  "description": "Daikenja — Grande Sábio AI Assistant",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "concurrently -n \"SERVER,CLIENT\" -c \"magenta,cyan\" \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
-    "build": "npm run build --prefix server && npm run build --prefix client",
+    "build:server": "npm run build --prefix server",
+    "build:client": "npm run build --prefix client",
+    "build:all": "npm run build:server && npm run build:client",
+    "start": "npm run build:all && electron .",
+    "predist": "npm run build:all",
+    "dist": "electron-builder --win",
     "install:all": "npm install && npm install --prefix server && npm install --prefix client"
   },
+  "dependencies": {
+    "@google/genai": "^2.26.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "openai": "^7.27.0"
+  },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "electron": "^35.2.1",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.daikenja.greatsage",
+    "productName": "Daikenja - Grande Sábio",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/**/*",
+      "!node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "server/dist",
+        "to": "server/dist",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "server/node_modules",
+        "to": "server/node_modules",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "server/package.json",
+        "to": "server/package.json"
+      },
+      {
+        "from": "client/dist",
+        "to": "client/dist",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "executableName": "Daikenja",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "electron/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Daikenja - Grande Sábio",
+      "installerIcon": "electron/icon.ico",
+      "uninstallerIcon": "electron/icon.ico"
+    }
+  },
+  "allowScripts": {
+    "@google/genai@2.27.0": true,
+    "electron@35.7.5": true,
+    "electron-winstaller@5.4.0": true,
+    "protobufjs@7.6.6": true
   }
 }

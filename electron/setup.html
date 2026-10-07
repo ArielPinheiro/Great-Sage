@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daikenja — Configuração</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0a0a12;
+      color: #e0e0e8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 440px;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #a78bfa;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #888;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #c0c0d0;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      background: #14141f;
+      border: 1px solid #2a2a3d;
+      border-radius: 8px;
+      color: #e0e0e8;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      border-color: #a78bfa;
+    }
+
+    input::placeholder {
+      color: #555;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 8px;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .skip {
+      display: block;
+      text-align: center;
+      margin-top: 16px;
+      color: #666;
+      font-size: 12px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .skip:hover {
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚙️ Daikenja — Configuração</h1>
+    <p class="subtitle">Insira sua chave de API do Google Gemini para começar.</p>
+
+    <form id="configForm">
+      <div class="field">
+        <label for="apiKey">GEMINI_API_KEY *</label>
+        <input
+          type="password"
+          id="apiKey"
+          name="apiKey"
+          placeholder="Cole sua chave de API aqui"
+          required
+          autocomplete="off"
+        />
+        <p class="hint">Obtenha em: <strong>aistudio.google.com/apikey</strong></p>
+      </div>
+
+      <div class="field">
+        <label for="model">Modelo (opcional)</label>
+        <input
+          type="text"
+          id="model"
+          name="model"
+          placeholder="gemini-3.5-flash-lite"
+          autocomplete="off"
+        />
+        <p class="hint">Padrão: gemini-3.5-flash-lite</p>
+      </div>
+
+      <button type="submit" id="saveBtn">Salvar e Iniciar</button>
+    </form>
+
+    <a class="skip" id="skipBtn">Pular (modo simulado)</a>
+  </div>
+
+  <script>
+    const form    = document.getElementById('configForm');
+    const skipBtn = document.getElementById('skipBtn');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const model  = document.getElementById('model').value.trim();
+      if (window.electronAPI) {
+        window.electronAPI.saveConfig({ apiKey, model });
+      }
+    });
+
+    skipBtn.addEventListener('click', () => {
+      if (window.electronAPI) {
+        window.electronAPI.saveConfig({ apiKey: '', model: '' });
+      }
+    });
+  </script>
+</body>
+</html>
