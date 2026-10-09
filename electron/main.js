@@ -2,12 +2,52 @@
 //  Daikenja — Grande Sábio · Electron Main Process
 // ──────────────────────────────────────────────────────────────
 
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, desktopCapturer } = require('electron');
 const path   = require('path');
 const fs     = require('fs');
 const net    = require('net');
 const http   = require('http');
 const { spawn } = require('child_process');
+
+// ── Screen and Recording IPC Handlers ────────────────────────
+ipcMain.handle('get-desktop-sources', async () => {
+  try {
+    const sources = await desktopCapturer.getSources({
+      types: ['screen', 'window'],
+      thumbnailSize: { width: 1920, height: 1080 },
+      fetchWindowIcons: true,
+    });
+    return sources.map((s) => ({
+      id: s.id,
+      name: s.name,
+      thumbnailUrl: s.thumbnail.toDataURL(),
+    }));
+  } catch (err) {
+    log('[Electron] Erro ao obter fontes de tela:', err.message);
+    return [];
+  }
+});
+
+ipcMain.handle('save-recording', async (_event, { base64Data, extension = 'webm' }) => {
+  try {
+    const downloadsDir = app.getPath('downloads');
+    const sageRecordingsDir = path.join(downloadsDir, 'Daikenja_Recordings');
+    if (!fs.existsSync(sageRecordingsDir)) {
+      fs.mkdirSync(sageRecordingsDir, { recursive: true });
+    }
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `gravacao_tela_${timestamp}.${extension}`;
+    const fullPath = path.join(sageRecordingsDir, filename);
+
+    const buffer = Buffer.from(base64Data, 'base64');
+    fs.writeFileSync(fullPath, buffer);
+    log(`[Electron] Gravação de tela salva com sucesso em: ${fullPath}`);
+    return { success: true, filePath: fullPath };
+  } catch (err) {
+    log('[Electron] Falha ao salvar gravação:', err.message);
+    return { success: false, error: err.message };
+  }
+});
 
 // ── Paths ────────────────────────────────────────────────────
 const IS_PACKAGED = app.isPackaged;

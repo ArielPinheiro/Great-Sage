@@ -32,8 +32,8 @@ app.use(
   }),
 );
 
-// Limit JSON request body size to 256kb
-app.use(express.json({ limit: '256kb' }));
+// Limit JSON request body size to 20MB for screen capture base64 images
+app.use(express.json({ limit: '20mb' }));
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {

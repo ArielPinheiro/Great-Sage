@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, ShieldAlert, Radio, Sparkles, MessageSquare } from 'lucide-react';
+import { Activity, ShieldAlert, Radio, Sparkles, MessageSquare, Cpu } from 'lucide-react';
 import type { SageStatus } from '../orb/types';
 import { useSageStore } from '../../store/useSageStore';
 
@@ -8,7 +8,15 @@ interface HudHeaderProps {
 }
 
 export const HudHeader: React.FC<HudHeaderProps> = ({ status }) => {
-  const { serverMode, isChatOpen, setChatOpen } = useSageStore();
+  const {
+    serverMode,
+    isChatOpen,
+    setChatOpen,
+    isRecording,
+    isMonitoring,
+    apiCallCount,
+    apiLimit,
+  } = useSageStore();
 
   const getStatusIcon = () => {
     switch (status) {
@@ -24,6 +32,8 @@ export const HudHeader: React.FC<HudHeaderProps> = ({ status }) => {
   };
 
   const getStatusLabel = () => {
+    if (isRecording) return 'GRAVAÇÃO DE TELA ATIVA';
+    if (isMonitoring) return 'MONITORAMENTO CONTÍNUO ATIVO';
     switch (status) {
       case 'thinking':
         return 'PROCESSAMENTO ANALITICO EM CURSO';
@@ -140,6 +150,31 @@ export const HudHeader: React.FC<HudHeaderProps> = ({ status }) => {
           <MessageSquare size={13} color={isChatOpen ? 'var(--accent-cyan)' : 'var(--text-secondary)'} />
           {isChatOpen ? 'FECHAR CHAT' : 'PERGUNTAR'}
         </button>
+
+        {/* API Session Calls Counter (Quota Telemetry) */}
+        <div
+          className="hud-panel"
+          title={`Chamadas feitas nesta sessão: ${apiCallCount} / limite: ${apiLimit}`}
+          style={{
+            padding: '8px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'default',
+          }}
+        >
+          <Cpu size={13} color={apiCallCount >= apiLimit ? '#ef4444' : 'var(--accent-cyan)'} />
+          <span
+            className="font-mono"
+            style={{
+              fontSize: '0.7rem',
+              letterSpacing: '0.12em',
+              color: apiCallCount >= apiLimit ? '#ef4444' : 'var(--text-main)',
+            }}
+          >
+            API: {apiCallCount} / {apiLimit}
+          </span>
+        </div>
 
         <div
           className="hud-panel"

@@ -11,6 +11,11 @@ import {
   ShieldAlert,
   Bot,
   User,
+  Camera,
+  Video,
+  VideoOff,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useSageStore } from '../../store/useSageStore';
 
@@ -31,9 +36,16 @@ export const ChatWindow: React.FC = () => {
     taskSteps,
     isStreaming,
     streamingContent,
+    isRecording,
+    isMonitoring,
     sendMessage,
     stopStreaming,
     clearConversation,
+    startScreenRecording,
+    stopScreenRecording,
+    startMonitoring,
+    stopMonitoring,
+    captureScreenImage,
   } = useSageStore();
 
   const [input, setInput] = useState('');
@@ -413,6 +425,25 @@ export const ChatWindow: React.FC = () => {
                 wordBreak: 'break-word',
               }}
             >
+              {msg.imageBase64 && (
+                <div style={{ marginBottom: '8px' }}>
+                  <img
+                    src={msg.imageBase64.startsWith('data:') ? msg.imageBase64 : `data:image/jpeg;base64,${msg.imageBase64}`}
+                    alt="Captura de tela enviada"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '180px',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      display: 'block',
+                      objectFit: 'cover',
+                    }}
+                  />
+                  <span className="font-mono" style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>
+                    [TELA CAPTURADA]
+                  </span>
+                </div>
+              )}
               {msg.taskSteps && msg.taskSteps.length > 0 && (
                 <div
                   style={{
@@ -660,6 +691,89 @@ export const ChatWindow: React.FC = () => {
               }}
             >
               MODO ANÁLISE PROFUNDA
+            </button>
+
+            {/* Quick Screen Vision Button */}
+            <button
+              type="button"
+              onClick={async () => {
+                const img = await captureScreenImage();
+                if (img) {
+                  sendMessage('Analise o que está visível na minha tela agora (código, janelas, textos, imagens).', 'chat', img);
+                }
+              }}
+              className="font-mono"
+              title="Captura e analisa a tela atual com visão IA"
+              style={{
+                fontSize: '0.68rem',
+                padding: '3px 8px',
+                border: '1px solid var(--border-dim)',
+                background: 'rgba(59, 130, 246, 0.1)',
+                color: '#60a5fa',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <Camera size={11} /> VER TELA
+            </button>
+
+            {/* Screen Recording Toggle Button */}
+            <button
+              type="button"
+              onClick={() => {
+                if (isRecording) {
+                  stopScreenRecording();
+                } else {
+                  startScreenRecording();
+                }
+              }}
+              className="font-mono"
+              title={isRecording ? 'Parar gravação de tela' : 'Começar a gravar a tela'}
+              style={{
+                fontSize: '0.68rem',
+                padding: '3px 8px',
+                border: isRecording ? '1px solid #ef4444' : '1px solid var(--border-dim)',
+                background: isRecording ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.08)',
+                color: isRecording ? '#ef4444' : '#f87171',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                animation: isRecording ? 'pulse 1.5s infinite' : 'none',
+              }}
+            >
+              {isRecording ? <VideoOff size={11} /> : <Video size={11} />}
+              {isRecording ? 'GRAVANDO...' : 'GRAVAR'}
+            </button>
+
+            {/* Screen Monitoring Toggle Button */}
+            <button
+              type="button"
+              onClick={() => {
+                if (isMonitoring) {
+                  stopMonitoring();
+                } else {
+                  startMonitoring('monitore minha tela');
+                }
+              }}
+              className="font-mono"
+              title={isMonitoring ? 'Parar monitoramento de tela' : 'Iniciar monitoramento contínuo da tela'}
+              style={{
+                fontSize: '0.68rem',
+                padding: '3px 8px',
+                border: isMonitoring ? '1px solid #10b981' : '1px solid var(--border-dim)',
+                background: isMonitoring ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.08)',
+                color: isMonitoring ? '#10b981' : '#34d399',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              {isMonitoring ? <EyeOff size={11} /> : <Eye size={11} />}
+              {isMonitoring ? 'MONITORANDO' : 'MONITORAR'}
             </button>
           </div>
 

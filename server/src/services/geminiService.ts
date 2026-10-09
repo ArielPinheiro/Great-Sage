@@ -16,6 +16,7 @@ import { executeTools, type FunctionCall } from '../tools/executor.js';
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  imageBase64?: string;
 }
 
 export type ChatMode = 'chat' | 'analysis';
@@ -193,6 +194,7 @@ export async function* createGeminiStream(
   rawMessages: ChatMessage[],
   mode: ChatMode = 'chat',
   signal?: AbortSignal,
+  customModel?: string,
 ): AsyncGenerator<string> {
   const messages = pruneHistory(rawMessages);
   const lastUserMsg =
@@ -208,10 +210,10 @@ export async function* createGeminiStream(
   }
 
   const apiKey = (process.env.GEMINI_API_KEY?.trim() || process.env.LLM_API_KEY?.trim())!;
-  const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+  const model = customModel || process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
   console.log(`[Gemini] GEMINI_API_KEY detectada: SIM [presente, comprimento: ${apiKey.length}]`);
-  console.log(`[Gemini] Modelo configurado: ${model}`);
+  console.log(`[Gemini] Modelo ativo: ${model}`);
 
   const systemInstruction =
     mode === 'analysis' ? GREAT_SAGE_ANALYSIS : GREAT_SAGE_CHAT;
@@ -246,11 +248,28 @@ export async function* createGeminiStream(
 
     if (signal?.aborted) return;
 
+    const lastUserObj = [...messages].reverse().find((m) => m.role === 'user');
+    const lastUserMsg = lastUserObj?.content || '';
+    const lastUserImage = lastUserObj?.imageBase64;
+
+    // Build message payload (text or text + inline image for vision)
+    let messagePayload: string | Array<{ text?: string; inlineData?: { mimeType: string; data: string } }>;
+    if (lastUserImage) {
+      // Remove data URL prefix if present
+      const cleanBase64 = lastUserImage.replace(/^data:image\/[a-z]+;base64,/, '');
+      messagePayload = [
+        { text: lastUserMsg },
+        { inlineData: { mimeType: 'image/jpeg', data: cleanBase64 } },
+      ];
+    } else {
+      messagePayload = lastUserMsg;
+    }
+
     // In analysis mode, stream response directly
     if (mode === 'analysis') {
       console.log(`[Gemini] Modo analise ativado. Iniciando stream direto...`);
       const streamRes = await withRetry(
-        () => chat.sendMessageStream({ message: lastUserMsg }),
+        () => chat.sendMessageStream({ message: messagePayload as any }),
         signal,
       );
 
@@ -267,11 +286,11 @@ export async function* createGeminiStream(
     }
 
     // ── Chat Mode with Tool Calling Support ─────────────────────────
-    console.log(`[Gemini] Enviando mensagem do usuario: "${lastUserMsg}"`);
+    console.log(`[Gemini] Enviando mensagem do usuario: "${lastUserMsg}" ${lastUserImage ? '(com imagem de tela anexada)' : ''}`);
 
     // First call to check for tool calls
     let response = await withRetry(
-      () => chat.sendMessage({ message: lastUserMsg }),
+      () => chat.sendMessage({ message: messagePayload as any }),
       signal,
     );
 
@@ -362,6 +381,18 @@ export async function* createGeminiStream(
 
     console.warn(`[Gemini] Falha na chamada da API: ${safeError}`);
     console.warn(`[Gemini] Diagnostico: ${category}`);
+
+    // Check if Rate Limit / 429
+    if (safeError.toLowerCase().includes('429') || safeError.toLowerCase().includes('resource_exhausted') || safeError.toLowerCase().includes('quota')) {
+      yield `data: ${JSON.stringify({
+        error: 'RATE_LIMIT_EXCEEDED',
+        statusCode: 429,
+        message: 'Limite de requisições por minuto da API (Rate Limit 429) atingido.',
+      })}\n\n`;
+      yield 'data: [DONE]\n\n';
+      return;
+    }
+
     console.log(`[Gemini] Ativando fallback para o modo simulado sem interromper o servico.`);
 
     // Gracefully stream simulated response as fallback

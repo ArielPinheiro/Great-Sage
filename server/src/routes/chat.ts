@@ -18,6 +18,7 @@ interface ValidationSuccess {
   valid: true;
   messages: ChatMessage[];
   mode: ChatMode;
+  model?: string;
 }
 
 interface ValidationFailure {
@@ -30,7 +31,19 @@ function validateChatRequest(body: unknown): ValidationSuccess | ValidationFailu
     return { valid: false, reason: 'Corpo da requisição inválido.' };
   }
 
-  const { messages, mode } = body as Record<string, unknown>;
+  const { messages, mode, model } = body as Record<string, unknown>;
+
+  // Validate model if provided
+  let selectedModel: string | undefined;
+  if (model !== undefined) {
+    if (typeof model !== 'string' || !model.trim()) {
+      return {
+        valid: false,
+        reason: 'Campo "model" deve ser uma string não-vazia.',
+      };
+    }
+    selectedModel = model.trim();
+  }
 
   // Validate mode
   let selectedMode: ChatMode = 'chat';
@@ -66,6 +79,14 @@ function validateChatRequest(body: unknown): ValidationSuccess | ValidationFailu
       };
     }
 
+    const imageBase64 = (msg as Record<string, unknown>).imageBase64;
+    if (imageBase64 !== undefined && typeof imageBase64 !== 'string') {
+      return {
+        valid: false,
+        reason: `Campo "imageBase64" no índice ${i} deve ser uma string válida.`,
+      };
+    }
+
     const role = (msg as Record<string, unknown>).role as string;
     if (role === 'system') {
       return {
@@ -86,6 +107,7 @@ function validateChatRequest(body: unknown): ValidationSuccess | ValidationFailu
     valid: true,
     messages: messages as ChatMessage[],
     mode: selectedMode,
+    model: selectedModel,
   };
 }
 
@@ -100,7 +122,7 @@ chatRouter.post('/chat', async (req: Request, res: Response) => {
     return;
   }
 
-  const { messages, mode } = validation;
+  const { messages, mode, model } = validation;
 
   const abortController = new AbortController();
 
@@ -112,7 +134,7 @@ chatRouter.post('/chat', async (req: Request, res: Response) => {
   });
 
   try {
-    const generator = createChatStream(messages, mode, abortController.signal);
+    const generator = createChatStream(messages, mode, abortController.signal, model);
 
     // Fetch first chunk to verify stream readiness before sending headers
     const firstResult = await generator.next();
